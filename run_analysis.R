@@ -14,6 +14,9 @@
         filetestsign<-list.files(dirtestsign)
         filetrainsign<- list.files (dirtrainsign)
 
+        ## Read data files in search directories into R objects
+        
+        
 ## Extract only the measurements on the mean and 
 ## standard deviation for each measurement. 
 
