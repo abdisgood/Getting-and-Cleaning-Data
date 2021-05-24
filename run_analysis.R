@@ -24,7 +24,22 @@
                            UCI HAR Dataset/test/y_test.txt")
         subjecttest<-read.table("./projectdata/
                            UCI HAR Dataset/test/subject_test.txt")
-  
+        
+        features<- read.table("./projectdata/
+                           UCI HAR Dataset/features.txt")
+        activities<- read.table("./projectdata/
+                           UCI HAR Dataset/activity_labels.txt")
+        
+        ## Combine all data sets and name columns
+        testdata<-cbind(subjecttest,ytest,xtest)
+        names(testdata)<-c("subject_id","activity_id",features[,2])
+        testdata$group<-"test"
+        
+        traindata<-cbind(subjecttrain,ytrain,xtrain)
+        names(traindata)<-c("subject_id","activity_id",features[,2])
+        traindata$group<-"train"
+        
+        alldata<-rbind(testdata,traindata)
         
 ## Extract only the measurements on the mean and 
 ## standard deviation for each measurement. 
