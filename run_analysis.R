@@ -1,5 +1,7 @@
 
 ## Merge the training and the test sets to create one data set.
+        ## Load required libraries
+        library(dplyr)
 
         ## Download data files
         if (!file.exists("./projectdata")) {dir.create("./projectdata")}
@@ -44,6 +46,14 @@
 ## Extract only the measurements on the mean and 
 ## standard deviation for each measurement. 
 
+        reqheaders <- grepl("*-mean*|*-std*", 
+                            names(alldata))
+        oldheaders <- data.frame(names(alldata))
+        newheaders <- c("subject_id", "activity_id", 
+                        oldheaders[reqheaders==T,])
+        
+        newdata <- select(alldata, newheaders)
+        
 ## Use descriptive activity names to name the activities 
 ## in the data set
 
