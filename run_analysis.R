@@ -1,7 +1,15 @@
 
 ## Merge the training and the test sets to create one data set.
         ## Load required libraries
+        if (!"dplyr" %in% rownames(installed.packages())) {
+                install.packages("dplyr")}
+        if (!"plyr" %in% rownames(installed.packages())) {
+                install.packages("plyr")}
+        if (!"reshape2" %in% rownames(installed.packages())) {
+                install.packages("reshape2")}
         library(dplyr)
+        library(plyr)
+        library(reshape2)
 
         ## Download data files
         if (!file.exists("./projectdata")) {dir.create("./projectdata")}
@@ -30,16 +38,15 @@
                 read.table("./projectdata/UCI HAR Dataset/features.txt")
         activities<- 
                 read.table("./projectdata/UCI HAR Dataset/activity_labels.txt")
+        names(activities)<- c("activity_id", "activity_name")
         
         ## Combine all data sets and name columns with appropriate 
         ## descriptive variables
         testdata<-cbind(subjecttest,ytest,xtest)
         names(testdata)<-c("subject_id","activity_id",features[,2])
-        testdata$group<-1
         
         traindata<-cbind(subjecttrain,ytrain,xtrain)
         names(traindata)<-c("subject_id","activity_id",features[,2])
-        traindata$group<-2
         
         alldata<-rbind(testdata,traindata)
         
@@ -49,15 +56,16 @@
         reqheaders <- grepl("*-mean*|*-std*", 
                             names(alldata))
         oldheaders <- data.frame(names(alldata))
-        newheaders <- c("subject_id", "activity_id","group", 
+        newheaders <- c("subject_id", "activity_id", 
                         oldheaders[reqheaders==T,])
         
         data.mean.std <- select(alldata, newheaders)
         
 ## Use descriptive activity names to name the activities 
 ## in the data set and sort by subject and activity
-        data.byactivity<- merge(data.mean.std, activities, by.y = "activity_id",all =T)%>%
-                select(c(2,1,83,3,4:82))%>%
+        data.by.activity<- merge(data.mean.std, 
+                                 activities, by.y = "activity_id",all =T)%>%
+                select(c(2,1,82,3:81))%>%
                 arrange (subject_id, activity_id)
 
 ## From the data set in step 4, creates a second, 
@@ -65,9 +73,12 @@
 ## variable for each activity and each subject.
         data.aggregate <- aggregate(.~subject_id + activity_id,
                                        data.mean.std, mean)%>%
-                                arrange(subject_id,activity_id)%>%
-                                merge(activities,by.y="activity_id",
-                                      all=T)
+                        merge (activities, by.y="activity_id", all=T)%>%
+                        arrange (subject_id, activity_id)%>%
+                        select (subject_id, activity_id, 
+                                activity_name, c(3:81))
         
-        
+        write.table(data.aggregate,file = "final_dataset.txt",
+                    row.names = F,
+                    col.names = T)
         
