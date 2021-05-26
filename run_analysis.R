@@ -53,32 +53,73 @@
 ## Extract only the measurements on the mean and 
 ## standard deviation for each measurement. 
 
-        reqheaders <- grepl("*-mean*|*-std*", 
-                            names(alldata))
-        oldheaders <- data.frame(names(alldata))
-        newheaders <- c("subject_id", "activity_id", 
-                        oldheaders[reqheaders==T,])
-        
-        data.mean.std <- select(alldata, newheaders)
+        data.mean.std <- select(alldata, subject_id, activity_id,
+                                contains("mean()"), 
+                                contains("std()"))
         
 ## Use descriptive activity names to name the activities 
 ## in the data set and sort by subject and activity
         data.by.activity<- merge(data.mean.std, 
                                  activities, by.y = "activity_id",all =T)%>%
-                select(c(2,1,82,3:81))%>%
-                arrange (subject_id, activity_id)
+                           select(c(subject_id,activity_id,
+                                    activity_name,3:68))%>%
+                           arrange (subject_id, activity_id)
 
 ## From the data set in step 4, creates a second, 
 ## independent tidy data set with the average of each 
 ## variable for each activity and each subject.
+        ## Combine all data into final data set and sort column headers
         data.aggregate <- aggregate(.~subject_id + activity_id,
                                        data.mean.std, mean)%>%
                         merge (activities, by.y="activity_id", all=T)%>%
                         arrange (subject_id, activity_id)%>%
-                        select (subject_id, activity_id, 
-                                activity_name, c(3:81))
+                        select (subject_id,activity_name, 
+                                (3:69))
         
+        cheaders<-sort(names(data.aggregate[3:68]))
+        data.aggregate <- select(data.aggregate,
+                                 subject_id, 
+                                 activity_name, 
+                                 cheaders)
+        
+        ## Rename all row headers to improve readability
+        
+        names(data.aggregate)<-gsub("[[:punct:]]", "", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Acc", "_accelerometer", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Gyro", "_gyroscope", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("BodyBody", "_body", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Body", "_body", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Mag", "_magnitude", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Jerk", "_jerk", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Gravity", "_gravity", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("^t", "time", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("^f", "frequency", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("mean", "_mean", 
+                                    names(data.aggregate), 
+                                    ignore.case = TRUE)
+        names(data.aggregate)<-gsub("std", "_std", 
+                                    names(data.aggregate), 
+                                    ignore.case = TRUE)
+        names(data.aggregate)<-gsub("angle", "_angle", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("X", "_X", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Y", "_Y", 
+                                    names(data.aggregate))
+        names(data.aggregate)<-gsub("Z", "_Z", 
+                                    names(data.aggregate))
+        
+        ## Write final data set into a "txt" file format
         write.table(data.aggregate,file = "final_dataset.txt",
-                    row.names = F,
-                    col.names = T)
+                    row.names = F)
         
